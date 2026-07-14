@@ -1,0 +1,285 @@
+/* 全局样式 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Microsoft YaHei", "PingFang SC", -apple-system, "Segoe UI", sans-serif;
+  background: #f3f5f9;
+  color: #1f2733;
+  line-height: 1.6;
+}
+
+.topbar {
+  background: linear-gradient(135deg, #4f81bd, #3a6298);
+  color: #fff;
+  padding: 24px 32px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* 卡片 */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  color: #2c3e50;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #8893a4;
+}
+
+textarea {
+  width: 100%;
+  border: 1px solid #d4dae3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #4f81bd;
+}
+
+/* 文件选择 */
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.file-label {
+  display: inline-block;
+  background: #eef2f8;
+  border: 1px dashed #9bb2d4;
+  color: #3a6298;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.file-label:hover {
+  background: #e1e9f5;
+}
+
+.file-label input[type="file"] {
+  display: none;
+}
+
+.file-name {
+  font-size: 13px;
+  color: #5a6675;
+  word-break: break-all;
+}
+
+/* 操作区 */
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 6px 0 20px;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.btn-primary {
+  background: #4f81bd;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #3a6298;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #4f81bd;
+  border: 1px solid #4f81bd;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #eef2f8;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  font-size: 14px;
+  color: #5a6675;
+}
+
+/* 结果表 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #eef1f5;
+  vertical-align: top;
+}
+
+th {
+  background: #f7f9fc;
+  color: #5a6675;
+  font-weight: 600;
+}
+
+.main-row:hover {
+  background: #f9fbfe;
+}
+
+.filename {
+  color: #8893a4;
+  word-break: break-all;
+  max-width: 220px;
+}
+
+.score {
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* 结论标签 */
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.tag-good { background: #e3f6e8; color: #1d8a3f; }
+.tag-mid  { background: #fff4e0; color: #c47f17; }
+.tag-bad  { background: #fde8e8; color: #c0392b; }
+.tag-error{ background: #ececec; color: #777; }
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #4f81bd;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* 详情区 */
+.detail {
+  background: #f7f9fc;
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.detail .summary {
+  margin: 0 0 10px;
+}
+
+.error-msg {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dim {
+  font-size: 13px;
+  color: #5a6675;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+}
+
+.detail-grid h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.detail-grid ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.detail-grid li {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.muted {
+  color: #aab2bf;
+  font-size: 13px;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,22 @@
+简历评估系统 - 配置说明
+======================================
+
+【第一步】复制本文件并重命名为 .env
+  1. 复制 ".env.example" 文件
+  2. 粘贴到同一文件夹，重命名为 ".env"（注意前面有个点）
+
+【第二步】填写 API 密钥
+  1. 右键 .env -> 打开方式 -> 记事本
+  2. 找到 DEEPSEEK_API_KEY= 这一行
+  3. 在等号后面粘贴你的 DeepSeek API 密钥
+  4. 保存文件（Ctrl+S）
+
+【第三步】启动系统
+  双击 start.bat 即可
+
+======================================
+
+# 以下为 .env 文件内容示例（也可直接复制到 .env 中使用）
+DEEPSEEK_API_KEY=在这里粘贴你的API密钥
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
