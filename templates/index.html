@@ -18,24 +18,26 @@
       <h2>1. 岗位 JD</h2>
       <p class="hint">粘贴 JD 文本，或上传 JD 文件（PDF / Word / txt）。两者都填时优先使用上传的文件。</p>
       <textarea id="jdText" rows="8" placeholder="在此粘贴岗位 JD 内容……"></textarea>
-      <div class="file-row">
-        <label class="file-label">
-          上传 JD 文件
-          <input type="file" id="jdFile" accept=".pdf,.docx,.txt" />
-        </label>
-        <span id="jdFileName" class="file-name"></span>
+      <div class="dropzone" id="jdDropzone" tabindex="0" role="button" aria-label="上传岗位 JD 文件">
+        <input type="file" id="jdFile" accept=".pdf,.docx,.txt" />
+        <div class="dropzone-inner">
+          <p class="dropzone-title">拖拽 JD 文件到此处</p>
+          <p class="dropzone-sub">或点击选择文件（仅 1 份）</p>
+          <p id="jdFileName" class="file-name"></p>
+        </div>
       </div>
     </section>
 
     <section class="card">
       <h2>2. 候选人简历</h2>
-      <p class="hint">可一次选择多份简历文件（PDF / Word / txt）。</p>
-      <div class="file-row">
-        <label class="file-label">
-          选择简历（可多选）
-          <input type="file" id="resumeFiles" accept=".pdf,.docx,.txt" multiple />
-        </label>
-        <span id="resumeFileNames" class="file-name"></span>
+      <p class="hint">可拖拽或选择多份简历文件（PDF / Word / txt），支持一次拖入多份。追加简历后再次评估时，仅评估新增文件（JD 变更则会全部重评）。</p>
+      <div class="dropzone" id="resumeDropzone" tabindex="0" role="button" aria-label="上传候选人简历">
+        <input type="file" id="resumeFiles" accept=".pdf,.docx,.txt" multiple />
+        <div class="dropzone-inner">
+          <p class="dropzone-title">拖拽简历到此处（可多份）</p>
+          <p class="dropzone-sub">或点击选择文件</p>
+          <p id="resumeFileNames" class="file-name"></p>
+        </div>
       </div>
     </section>
 
@@ -67,6 +69,8 @@
   <script>
     // 当前评估结果，供导出使用
     let currentResults = [];
+    // 上次评估时使用的 JD 标识；JD 变更后需整批重评
+    let lastEvaluatedJdKey = "";
 
     const jdFileInput = document.getElementById("jdFile");
     const resumeFilesInput = document.getElementById("resumeFiles");
@@ -76,16 +80,105 @@
     const resultSection = document.getElementById("resultSection");
     const resultTbody = document.querySelector("#resultTable tbody");
 
-    // 显示已选文件名
-    jdFileInput.addEventListener("change", () => {
+    // 生成当前 JD 的标识（与后端优先使用上传文件的逻辑一致）
+    function getJdKey() {
+      if (jdFileInput.files.length) {
+        const f = jdFileInput.files[0];
+        return `file:${f.name}:${f.size}:${f.lastModified}`;
+      }
+      return `text:${document.getElementById("jdText").value.trim()}`;
+    }
+
+    // 按匹配度从高到低排序
+    function sortResultsByScore(results) {
+      return results.slice().sort((a, b) => (b.score || 0) - (a.score || 0));
+    }
+
+    const ALLOWED_EXT = [".pdf", ".docx", ".txt"];
+
+    // 判断是否为支持的文件类型
+    function isAllowedFile(file) {
+      const name = (file && file.name ? file.name : "").toLowerCase();
+      return ALLOWED_EXT.some(ext => name.endsWith(ext));
+    }
+
+    // 用 DataTransfer 写入 input.files（支持拖拽赋值 / 追加）
+    function setInputFiles(input, files) {
+      const dt = new DataTransfer();
+      files.forEach(f => dt.items.add(f));
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change"));
+    }
+
+    // 更新 JD / 简历已选文件名展示
+    function updateJdFileName() {
       document.getElementById("jdFileName").textContent =
-        jdFileInput.files.length ? jdFileInput.files[0].name : "";
-    });
-    resumeFilesInput.addEventListener("change", () => {
+        jdFileInput.files.length ? `已选：${jdFileInput.files[0].name}` : "";
+    }
+    function updateResumeFileNames() {
       const names = Array.from(resumeFilesInput.files).map(f => f.name);
       document.getElementById("resumeFileNames").textContent =
         names.length ? `已选 ${names.length} 份：` + names.join("，") : "";
-    });
+    }
+
+    jdFileInput.addEventListener("change", updateJdFileName);
+    resumeFilesInput.addEventListener("change", updateResumeFileNames);
+
+    // 绑定拖拽上传区：JD 单文件，简历可多选且可追加
+    function bindDropzone(zone, input, { multiple }) {
+      zone.addEventListener("click", (e) => {
+        // 避免重复触发：点击到隐藏 input 自身时不处理
+        if (e.target === input) return;
+        input.click();
+      });
+
+      zone.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          input.click();
+        }
+      });
+
+      ["dragenter", "dragover"].forEach(type => {
+        zone.addEventListener(type, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          zone.classList.add("dragover");
+        });
+      });
+
+      ["dragleave", "drop"].forEach(type => {
+        zone.addEventListener(type, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // dragleave 可能触发在子元素上，仅在真正离开区域时取消高亮
+          if (type === "dragleave" && zone.contains(e.relatedTarget)) return;
+          zone.classList.remove("dragover");
+        });
+      });
+
+      zone.addEventListener("drop", (e) => {
+        const dropped = Array.from(e.dataTransfer.files || []).filter(isAllowedFile);
+        if (!dropped.length) {
+          alert("仅支持 PDF / Word / txt 文件。");
+          return;
+        }
+
+        if (!multiple) {
+          setInputFiles(input, [dropped[0]]);
+          return;
+        }
+
+        // 多文件：与已选合并，按文件名去重
+        const merged = new Map();
+        Array.from(input.files).forEach(f => merged.set(f.name, f));
+        dropped.forEach(f => merged.set(f.name, f));
+        setInputFiles(input, Array.from(merged.values()));
+      });
+    }
+
+    bindDropzone(document.getElementById("jdDropzone"), jdFileInput, { multiple: false });
+    bindDropzone(document.getElementById("resumeDropzone"), resumeFilesInput, { multiple: true });
 
     // 不同结论对应的样式类
     function verdictClass(verdict) {
@@ -157,7 +250,7 @@
       resultSection.classList.remove("hidden");
     }
 
-    // 开始评估
+    // 开始评估（增量：仅评估尚未评估过的简历；JD 变更则整批重评）
     evaluateBtn.addEventListener("click", async () => {
       const jdText = document.getElementById("jdText").value.trim();
       const hasJdFile = jdFileInput.files.length > 0;
@@ -170,14 +263,33 @@
         return;
       }
 
+      const allFiles = Array.from(resumeFilesInput.files);
+      const jdKey = getJdKey();
+      const jdChanged = Boolean(lastEvaluatedJdKey) && jdKey !== lastEvaluatedJdKey;
+      // JD 变更或尚无结果时整批评估；否则只评估新增文件
+      const evaluatedNames = new Set(
+        jdChanged ? [] : currentResults.map(r => r.filename)
+      );
+      const filesToEvaluate = allFiles.filter(f => !evaluatedNames.has(f.name));
+
+      if (!filesToEvaluate.length) {
+        alert("没有新增简历需要评估。若已修改 JD，修改后再次评估将整批重评。");
+        return;
+      }
+
       const formData = new FormData();
       formData.append("jd_text", jdText);
       if (hasJdFile) formData.append("jd_file", jdFileInput.files[0]);
-      Array.from(resumeFilesInput.files).forEach(f => formData.append("resume_files", f));
+      filesToEvaluate.forEach(f => formData.append("resume_files", f));
 
+      const isIncremental = !jdChanged && currentResults.length > 0;
       evaluateBtn.disabled = true;
       exportBtn.disabled = true;
-      statusEl.textContent = "正在评估，请稍候……（简历较多时耗时较长）";
+      statusEl.textContent = isIncremental
+        ? `正在增量评估 ${filesToEvaluate.length} 份新增简历……`
+        : (jdChanged
+          ? `JD 已变更，正在重新评估全部 ${filesToEvaluate.length} 份……`
+          : "正在评估，请稍候……（简历较多时耗时较长）");
 
       try {
         const resp = await fetch("/evaluate", { method: "POST", body: formData });
@@ -187,9 +299,25 @@
           alert(data.message || "评估失败。");
           return;
         }
-        currentResults = data.results;
+
+        if (isIncremental) {
+          // 保留旧结果，合并新增，并去掉已不在选择列表中的简历
+          const selectedNames = new Set(allFiles.map(f => f.name));
+          const kept = currentResults.filter(r => selectedNames.has(r.filename));
+          const byName = new Map(kept.map(r => [r.filename, r]));
+          (data.results || []).forEach(r => byName.set(r.filename, r));
+          currentResults = sortResultsByScore(Array.from(byName.values()));
+          statusEl.textContent =
+            `增量评估完成：新增 ${data.results.length} 份，累计 ${currentResults.length} 份。`;
+        } else {
+          currentResults = data.results;
+          statusEl.textContent = jdChanged
+            ? `JD 已变更，已重新评估 ${currentResults.length} 份。`
+            : `评估完成，共 ${currentResults.length} 份。`;
+        }
+
+        lastEvaluatedJdKey = jdKey;
         renderResults(currentResults);
-        statusEl.textContent = `评估完成，共 ${currentResults.length} 份。`;
         exportBtn.disabled = false;
       } catch (err) {
         statusEl.textContent = "";

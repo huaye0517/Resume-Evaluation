@@ -70,39 +70,67 @@ textarea:focus {
   border-color: #4f81bd;
 }
 
-/* 文件选择 */
-.file-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* 拖拽上传区 */
+.dropzone {
+  position: relative;
   margin-top: 12px;
-  flex-wrap: wrap;
-}
-
-.file-label {
-  display: inline-block;
-  background: #eef2f8;
-  border: 1px dashed #9bb2d4;
+  border: 1.5px dashed #9bb2d4;
+  border-radius: 10px;
+  background: #f7f9fc;
   color: #3a6298;
-  padding: 8px 16px;
-  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.file-label:hover {
+.dropzone:hover {
+  background: #eef2f8;
+  border-color: #4f81bd;
+}
+
+.dropzone.dragover {
   background: #e1e9f5;
+  border-color: #3a6298;
+  box-shadow: inset 0 0 0 1px #3a6298;
 }
 
-.file-label input[type="file"] {
+.dropzone:focus {
+  outline: none;
+  border-color: #4f81bd;
+  box-shadow: 0 0 0 3px rgba(79, 129, 189, 0.2);
+}
+
+.dropzone input[type="file"] {
   display: none;
 }
 
+.dropzone-inner {
+  padding: 22px 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.dropzone-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #3a6298;
+}
+
+.dropzone-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #8893a4;
+}
+
 .file-name {
+  margin: 10px 0 0;
   font-size: 13px;
   color: #5a6675;
   word-break: break-all;
+}
+
+.file-name:empty {
+  display: none;
 }
 
 /* 操作区 */
