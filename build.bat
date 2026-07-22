@@ -12,7 +12,7 @@ echo.
 
 set "SOURCE_DIR=%~dp0"
 set "PACKAGE_NAME=简历评估系统"
-set "PACKAGE_VERSION=v1.1"
+set "PACKAGE_VERSION=v1.2"
 set "TEMP_ROOT=%TEMP%\ResumeEvaluation_Package_%RANDOM%"
 set "PACKAGE_DIR=%TEMP_ROOT%\%PACKAGE_NAME%"
 set "OUTPUT_DIR=%SOURCE_DIR%dist"
